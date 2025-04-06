@@ -1,1 +1,98 @@
-e
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Google Drive API - JavaScriptでファイルを取得</title>
+  <script src="https://apis.google.com/js/api.js"></script>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      margin: 20px;
+    }
+    button {
+      background-color: #4CAF50;
+      color: white;
+      padding: 10px 20px;
+      border: none;
+      cursor: pointer;
+    }
+    button:hover {
+      background-color: #45a049;
+    }
+  </style>
+</head>
+<body>
+
+  <h1>Google Drive API - ファイルを取得</h1>
+
+  <p>Google Driveからファイルリストを取得するために、以下の手順で認証してください。</p>
+  <button id="auth-button">Googleアカウントで認証</button>
+  <p id="file-list"></p>
+
+  <script>
+    // クライアントIDとAPIキー
+    const CLIENT_ID = '658122028296-nn271pv76752ibb3vugdc88lp9j8q465.apps.googleusercontent.com';
+    const API_KEY = 'AIzaSyAOqpY-8w6xCd34-a0X5MEzpqpvCIq5Lk8';
+
+    const SCOPES = 'https://www.googleapis.com/auth/drive.readonly';
+    let authInstance;
+
+    // Google APIのロードと初期化
+    function initGoogleAPI() {
+      gapi.client.init({
+        apiKey: API_KEY,
+        clientId: CLIENT_ID,
+        scope: SCOPES,
+        discoveryDocs: ['https://www.googleapis.com/discovery/v1/apis/drive/v3/rest']
+      }).then(function () {
+        authInstance = gapi.auth2.getAuthInstance();
+        // ユーザーが認証しているか確認
+        if (authInstance.isSignedIn.get()) {
+          listFiles();  // 認証されていれば、ファイルをリスト表示
+        }
+      });
+    }
+
+    // Google APIの認証を行う
+    function authenticate() {
+      authInstance.signIn().then(function () {
+        listFiles();  // 認証後にファイルリストを取得
+      });
+    }
+
+    // Google Driveからファイルリストを取得
+    function listFiles() {
+      gapi.client.drive.files.list({
+        'pageSize': 10,  // 最大10件のファイルを取得
+        'fields': 'files(id, name)'  // 取得する情報：ファイルIDと名前
+      }).then(function(response) {
+        const files = response.result.files;
+        if (files && files.length > 0) {
+          let fileList = '<ul>';
+          files.forEach(function(file) {
+            fileList += `<li>${file.name} (ID: ${file.id})</li>`;
+          });
+          fileList += '</ul>';
+          document.getElementById('file-list').innerHTML = fileList;
+        } else {
+          document.getElementById('file-list').innerHTML = 'Google Driveにファイルがありません。';
+        }
+      });
+    }
+
+    // 認証ボタンをクリックしたときに認証を開始
+    document.getElementById('auth-button').onclick = function() {
+      authenticate();
+    };
+
+    // Google APIをロード
+    function loadClient() {
+      gapi.load('client:auth2', initGoogleAPI);
+    }
+
+    loadClient();
+  </script>
+
+</body>
+</html>
