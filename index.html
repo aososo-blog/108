@@ -40,20 +40,23 @@
     let authInstance;
 
     // Google APIのロードと初期化
-    function initGoogleAPI() {
-      gapi.client.init({
-        apiKey: API_KEY,
-        clientId: CLIENT_ID,
-        scope: SCOPES,
-        discoveryDocs: ['https://www.googleapis.com/discovery/v1/apis/drive/v3/rest']
-      }).then(function () {
-        authInstance = gapi.auth2.getAuthInstance();
-        // ユーザーが認証しているか確認
-        if (authInstance.isSignedIn.get()) {
-          listFiles();  // 認証されていれば、ファイルをリスト表示
-        }
-      });
+function initGoogleAPI() {
+  gapi.client.init({
+    apiKey: API_KEY,
+    clientId: CLIENT_ID,
+    scope: SCOPES,
+    discoveryDocs: ['https://www.googleapis.com/discovery/v1/apis/drive/v3/rest']
+  }).then(function () {
+    authInstance = gapi.auth2.getAuthInstance();
+    if (authInstance.isSignedIn.get()) {
+      listFiles(); // 認証済みの場合はファイル一覧を表示
+    } else {
+      console.log("User is not signed in");
     }
+  }).catch(function (error) {
+    console.error("Error initializing Google API: ", error);
+  });
+}
 
     // Google APIの認証を行う
     function authenticate() {
